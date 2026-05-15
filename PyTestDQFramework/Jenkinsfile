@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/AnkushGuptaQA/dqe-automation/PyTestDQFramework'
+                git 'https://github.com/AnkushGuptaQA/dqe-automation'
             }
         }
         stage('Install dependencies') {
