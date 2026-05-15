@@ -1,0 +1,37 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/AnkushGuptaQA/dqe-automation'
+            }
+        }
+        stage('Install dependencies') {
+            steps {
+                sh 'pip install pytest pytest-html pandas psycopg2'
+            }
+        }
+        stage('Run Pytest') {
+            steps {
+                // Run pytest with HTML report
+                sh '''
+                mkdir -p Test_Reports
+                pytest "dq checks/parquet_files" --html=Test_Reports/report.html --self-contained-html
+                '''
+            }
+        }
+        stage('Publish HTML Report') {
+            steps {
+                publishHTML(target: [
+                    allowMissing: false,
+                    alwaysLinkToLastBuild: true,
+                    keepAll: true,
+                    reportDir: 'Test_Reports',
+                    reportFiles: 'report.html',
+                    reportName: 'Pytest Report'
+                ])
+            }
+        }
+    }
+}
