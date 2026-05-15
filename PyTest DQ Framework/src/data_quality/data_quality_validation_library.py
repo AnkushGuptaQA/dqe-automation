@@ -1,35 +1,46 @@
 import pandas as pd
 
-
-class DataQualityLibrary:
-    """
-    A library of static methods for performing data quality checks on pandas DataFrames.
-
-    This class is intended to be used in a PyTest-based testing framework to validate
-    the quality of data in DataFrames. Each method performs a specific data quality
-    check and uses assertions to ensure that the data meets the expected conditions.
-    """
+class DataQualityValidator:
+    @staticmethod
+    def validate_min_time_spent(pg_df, pq_df):
+        try:
+            pg_df = pg_df.copy()
+            pq_df = pq_df.copy()
+            pg_df['visit_date'] = pd.to_datetime(pg_df['visit_date'])
+            pq_df['visit_date'] = pd.to_datetime(pq_df['visit_date'])
+            merged = pd.merge(pg_df, pq_df, on=['facility_name', 'visit_date'], how='inner')
+            return merged['min_time_spent'].equals(merged['min_time_spend'])
+        except Exception as e:
+            print(f"Error in validate_min_time_spent: {e}")
+            return False
 
     @staticmethod
-    def check_duplicates(df, column_names=None):
-        if column_names:
-            df.duplicates(column_names)
-        else:
-            df.duplicates(all_columns)
+    def validate_avg_time_spent(pg_df, pq_df):
+        try:
+            pg_df = pg_df.copy()
+            pq_df = pq_df.copy()
+            pg_df['visit_date'] = pd.to_datetime(pg_df['visit_date'])
+            pq_df['visit_date'] = pd.to_datetime(pq_df['visit_date'])
+            merged = pd.merge(pg_df, pq_df, on=['facility_type', 'visit_date'], how='inner')
+            return merged['avg_time_spent_pg'].equals(merged['avg_time_spent'])
+        except Exception as e:
+            print(f"Error in validate_avg_time_spent: {e}")
+            return False
 
     @staticmethod
-    def check_count(df1, df2):
-        df1.count = df2.count
+    def validate_sum_treatment_cost(pg_df, pq_df):
+        try:
+            merged = pd.merge(pg_df, pq_df, on=['facility_type', 'full_name'], how='inner')
+            failed_rows = merged[merged['sum_treatment_cost_pg'] != merged['sum_treatment_cost']]
+            return failed_rows
+        except Exception as e:
+            print(f"Error in validate_sum_treatment_cost: {e}")
+            return False
 
     @staticmethod
-    def check_data_full_data_set(df1, df2):
-        df1 = df2
-
-    @staticmethod
-    def check_dataset_is_not_empty(df):
-        df.is_not_empty
-
-    @staticmethod
-    def check_not_null_values(df, column_names=None):
-        col for df.column_names:
-            col.not_null
+    def validate_row_count(pg_df, pq_df):
+        try:
+            return len(pg_df) == len(pq_df)
+        except Exception as e:
+            print(f"Error in validate_row_count: {e}")
+            return False
