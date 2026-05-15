@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/AnkushGuptaQA/dqe-automation'
+                git 'https://github.com/AnkushGuptaQA/dqe-automation/PyTestDQFramework'
             }
         }
         stage('Install dependencies') {
@@ -17,7 +17,7 @@ pipeline {
                 // Run pytest with HTML report
                 sh '''
                 mkdir -p Test_Reports
-                pytest "dq checks/parquet_files" --html=Test_Reports/report.html --self-contained-html
+                pytest "dqchecks/parquet_files" --html=Test_Reports/report.html --self-contained-html
                 '''
             }
         }
