@@ -9,7 +9,7 @@ pipeline {
         }
         stage('Install dependencies') {
             steps {
-                sh 'pip install pytest pytest-html pandas psycopg2'
+                sh 'pip install pytest pytest-html pandas psycopg2 pyarrow'
             }
         }
         stage('Run Pytest') {
@@ -17,7 +17,7 @@ pipeline {
                 // Run pytest with HTML report
                 sh '''
                 mkdir -p Test_Reports
-                pytest "dqchecks/parquet_files" --html=Test_Reports/report.html --self-contained-html
+                pytest "tests/dqchecks/parquet_files" --html=Test_Reports/report.html --self-contained-html
                 '''
             }
         }
