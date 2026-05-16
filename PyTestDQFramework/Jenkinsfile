@@ -18,22 +18,22 @@ pipeline {
         }
         stage('Install Dependencies') {
             steps {
-                script {
-                    // Create a virtual environment
-                    sh '''
-                        python3 -m venv venv
-                        . venv/bin/activate
-                        pip install -r PyTestDQFramework/requirements.txt
-                    '''
-                }
+                sh '''
+                    cd PyTestDQFramework
+                    python3 -m venv venv
+                    . venv/bin/activate
+                    pip install --upgrade pip
+                    pip install -r requirements.txt
+                '''
             }
         }
         stage('Run Pytest') {
             steps {
-                // Run pytest with HTML report
                 sh '''
-                mkdir -p Test_Reports
-                pytest "tests/dqchecks/parquet_files" --html=Test_Reports/report.html --self-contained-html
+                    cd PyTestDQFramework
+                    . venv/bin/activate
+                    mkdir -p Test_Reports
+                    pytest tests/dqchecks/parquet_files --html=Test_Reports/report.html --self-contained-html
                 '''
             }
         }
@@ -43,7 +43,7 @@ pipeline {
                     allowMissing: false,
                     alwaysLinkToLastBuild: true,
                     keepAll: true,
-                    reportDir: 'Test_Reports',
+                    reportDir: 'PyTestDQFramework/Test_Reports',
                     reportFiles: 'report.html',
                     reportName: 'Pytest Report'
                 ])
