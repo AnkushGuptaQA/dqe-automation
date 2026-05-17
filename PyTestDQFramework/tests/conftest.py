@@ -7,7 +7,7 @@ def pg_conn():
     try:
         conn = PostgresConnector(
             host="localhost",
-            port=5434,
+            port=5432,
             database="mydatabase",
             user="myuser",
             password="mypassword"
