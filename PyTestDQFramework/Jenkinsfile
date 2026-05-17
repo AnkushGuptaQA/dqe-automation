@@ -22,7 +22,6 @@ pipeline {
         stage('Start Postgres (Docker)') {
             steps {
                 sh '''
-                    cd PyTestDQFramework
                     docker-compose up -d
                 '''
             }
