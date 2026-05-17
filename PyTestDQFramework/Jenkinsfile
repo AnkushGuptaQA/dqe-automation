@@ -2,59 +2,22 @@ pipeline {
     agent any
 
     stages {
-        stage('Install Python') {
+        stage('Checkout') {
             steps {
-                sh 'apt-get install -y python3 python3-pip python3-venv'
+                git 'https://github.com/AnkushGuptaQA/dqe-automation'
             }
         }
-        stage('Install Docker Compose') {
+        stage('Install dependencies') {
             steps {
-                sh 'apt-get install -y docker.io docker-compose'
-            }
-        }
-        stage('Clone Repository') {
-            steps {
-                script {
-                    git branch: 'main', url: 'https://github.com/AnkushGuptaQA/dqe-automation'
-                }
-            }
-        }
-        stage('Start Postgres (Docker)') {
-            steps {
-                sh '''
-                    cd PyTestDQFramework
-                    docker-compose up -d
-                '''
-            }
-        }
-        stage('Wait for Postgres') {
-            steps {
-                sh '''
-                    for i in {1..20}; do
-                        docker exec dq_postgres pg_isready -U myuser && break
-                        sleep 2
-                    done
-                '''
-            }
-        }
-        stage('Install Dependencies') {
-            steps {
-                sh '''
-                    cd PyTestDQFramework
-                    python3 -m venv venv
-                    . venv/bin/activate
-                    pip install --upgrade pip
-                    pip install -r requirements.txt
-                '''
+                sh 'pip install pytest pytest-html pandas psycopg2'
             }
         }
         stage('Run Pytest') {
             steps {
+                // Run pytest with HTML report
                 sh '''
-                    cd PyTestDQFramework
-                    . venv/bin/activate
-                    mkdir -p Test_Reports
-                    pytest tests/dqchecks/parquet_files --html=Test_Reports/report.html --self-contained-html
+                mkdir -p Test_Reports
+                pytest "dqchecks/parquet_files" --html=Test_Reports/report.html --self-contained-html
                 '''
             }
         }
@@ -64,20 +27,11 @@ pipeline {
                     allowMissing: false,
                     alwaysLinkToLastBuild: true,
                     keepAll: true,
-                    reportDir: 'PyTestDQFramework/Test_Reports',
+                    reportDir: 'Test_Reports',
                     reportFiles: 'report.html',
                     reportName: 'Pytest Report'
                 ])
             }
-        }
-    }
-    post {
-        always {
-            // Stop and remove containers after build
-            sh '''
-                cd PyTestDQFramework
-                docker-compose down -v
-            '''
         }
     }
 }
