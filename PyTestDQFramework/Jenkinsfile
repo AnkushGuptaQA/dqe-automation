@@ -1,57 +1,39 @@
 pipeline {
     agent any
-
     stages {
-        // Fix Docker daemon access permissions immediately
-        stage('Fix Docker Socket Permissions') {
+        stage('Update Packages') {
             steps {
-                sh 'sudo chmod 666 /var/run/docker.sock || true'
+                script {
+                    // Update the package list
+                    sh 'apt-get update'
+                    sh 'apt-get install -y libpq-dev'
+                }
             }
         }
         stage('Install Python') {
             steps {
+                // Install Python and pip
                 sh 'apt-get install -y python3 python3-pip python3-venv'
-            }
-        }
-        stage('Install Docker Compose') {
-            steps {
-                sh 'apt-get install -y docker.io docker-compose'
             }
         }
         stage('Clone Repository') {
             steps {
                 script {
+                    // Clone the Git repository
                     git branch: 'main', url: 'https://github.com/AnkushGuptaQA/dqe-automation'
                 }
             }
         }
-        stage('Start Postgres (Docker)') {
-            steps {
-                sh '''
-                    cd PyTestDQFramework
-                    docker-compose up -d
-                '''
-            }
-        }
-        stage('Wait for Postgres') {
-            steps {
-                sh '''
-                    for i in {1..20}; do
-                        docker exec dq_postgres pg_isready -U myuser && break
-                        sleep 2
-                    done
-                '''
-            }
-        }
         stage('Install Dependencies') {
             steps {
-                sh '''
-                    cd PyTestDQFramework
-                    python3 -m venv venv
-                    . venv/bin/activate
-                    pip install --upgrade pip
-                    pip install -r requirements.txt
-                '''
+                script {
+                    // Create a virtual environment
+                    sh '''
+                        python3 -m venv venv
+                        . venv/bin/activate
+                        pip install -r PyTestDQFramework/requirements.txt
+                    '''
+                }
             }
         }
         stage('Run Pytest') {
@@ -79,11 +61,15 @@ pipeline {
     }
     post {
         always {
-            // Stop and remove containers after build
-            sh '''
-                cd PyTestDQFramework
-                docker-compose down -v
-            '''
+            echo 'Pipeline execution completed.'
+        }
+        success {
+            echo 'Pipeline executed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed. Please check the logs for details.'
         }
     }
 }
+
+
